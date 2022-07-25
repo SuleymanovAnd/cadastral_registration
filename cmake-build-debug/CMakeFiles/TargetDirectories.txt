@@ -1,0 +1,3 @@
+E:/SkillboxProject/21_practice/cadastral_registration/cmake-build-debug/CMakeFiles/cadastral_registration.dir
+E:/SkillboxProject/21_practice/cadastral_registration/cmake-build-debug/CMakeFiles/edit_cache.dir
+E:/SkillboxProject/21_practice/cadastral_registration/cmake-build-debug/CMakeFiles/rebuild_cache.dir
