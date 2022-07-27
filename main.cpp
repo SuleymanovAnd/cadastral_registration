@@ -20,12 +20,14 @@ struct room{
     room_type roomType;
 };
 struct floor {
+    int ceiling_height;
     int rooms;
     vector <room> room;
 };
 
 struct construction {
     building_type buildingType;
+    bool stove_with_pipe;
     int floorsCount;
     int constructionArea;
     vector <floor> floors;
@@ -34,7 +36,9 @@ struct construction {
 struct village
 {
     int lotNumber;
-    int buildingsCount = 1;
+    int buildingsCount;
+    int plot_area = 0;
+    int unoccupied_land_area = plot_area;
     vector <construction> building;
 
 };
@@ -46,7 +50,7 @@ int main() {
     cin >> countPlots;
     while (overflow()) {cout << "Input error. Try again: "; cin >> countPlots;}
 
-    if (countPlots <= 0 ) {
+    if (countPlots <= 0 ) { // если количество участков меньше или равно 0
         cout << "There are no plots in this village\n";
     }else {
         // инициализация участков
@@ -54,8 +58,13 @@ int main() {
         for (int i = 0; i < countPlots; i++) {
 
             // заполняем участок
-            cout << "Plot # " << i+1<< endl;
             plot[i].lotNumber = i+1;
+            cout << "Plot # " << plot[i].lotNumber<< endl;
+
+            // вводим площадь участка
+            cout << "enter the area of the plot: ";
+            cin >> plot[i].plot_area;
+            plot[i].unoccupied_land_area = plot[i].plot_area;
 
             // вводим количество построек
             cout << "Enter the number of buildings on the lot: ";
@@ -93,26 +102,70 @@ int main() {
                 // вводим площадь здания
                 cout << "Enter building area: ";
                 cin >> plot[i].building[j].constructionArea;
+                // проверяем корректность ввода
                 while (overflow ()) {cin >> plot[i].building[j].constructionArea;}
-                while (plot[i].building[j].constructionArea  <=0 ) {
+                while (plot[i].building[j].constructionArea  <=0) {
                     cout << "Building area cannot be less than or equal to 0. Enter again: ";
                     cin >> plot[i].building[j].constructionArea;
+                    while (overflow ()) {cin >> plot[i].building[j].constructionArea;}
                 }
+                // проверка площади относительно участка
+                while (plot[i].building[j].constructionArea >= plot[i].plot_area
+                        || plot[i].building[j].constructionArea > plot[i].unoccupied_land_area) {
+                    cout << "Building area cannot be more or equal to plot area. Enter again: ";
+                    cin >> plot[i].building[j].constructionArea;
+                    while (overflow ()) {cin >> plot[i].building[j].constructionArea;}
+                }
+                // вычитаем из незанятой площади - площадь постройки
+                plot[i].unoccupied_land_area -= plot[i].building[j].constructionArea;
 
                 // если здание дом
                 if (plot[i].building[j].buildingType == house) {
+
+                    //проверяем в доме печь с трубой
+                    cout << "Does the house have a stove with a chimney?\ny/n :";
+                    char tmp;
+                    cin >> tmp;
+                    while (tmp != 'y' && tmp != 'Y' && tmp != 'n' && tmp != 'N') {
+                        cout << "Incorrect symbol. Enter again: ";
+                        cin >> tmp;
+                    }
+                    if (tmp == 'y'|| tmp == 'Y') {plot[i].building[j].stove_with_pipe = true;}
+                    else if (tmp == 'n'|| tmp == 'N'){plot[i].building[j].stove_with_pipe = false;}
+
                     // вводим количество этажей
                     cout << "Enter floor count for house: ";
                     cin >> plot[i].building[j].floorsCount;
-                    while (overflow()) {cin >> plot[i].building[j].floorsCount;}
 
+                    // проверяем корректность ввода.
+                    while (overflow()) {cin >> plot[i].building[j].floorsCount;}
+                        while(plot[i].building[j].floorsCount < 1 || plot[i].building[j].floorsCount >3){
+                            cout << "the house cannot have less than 1 and more than 3 floors\nEnter again: ";
+                            cin >> plot[i].building[j].floorsCount;
+                            while (overflow()) {cin >> plot[i].building[j].floorsCount;}
+                        }
+                        // расширяем вектор до размера этажей
                     plot[i].building[j].floors.resize (plot[i].building[j].floorsCount);
+
                     for (int f = 0; f< plot[i].building[j].floorsCount;f++ ){
+
+                        // вводим высоту потолка для f этажа
+                        cout <<  "Enter ceiling height for " << f+1 << " floor: ";
+                        cin >> plot[i].building[j].floors[f].ceiling_height;
+
                         // вводим количество комнат для каждого этажа
                         cout << "Floor # " << f+1 << endl;
                         cout << "Enter rooms count: ";
                         cin >> plot[i].building[j].floors[f].rooms;
+
+                        // проверка корректности ввода комнат
                         while (overflow()) {cin >> plot[i].building[j].floors[f].rooms;}
+                        while ( plot[i].building[j].floors[f].rooms <2 || plot[i].building[j].floors[f].rooms >4){
+                            cout << "rooms cannot be less than 2 and more than 4";
+                            cin >> plot[i].building[j].floors[f].rooms;
+                            while (overflow()) {cin >> plot[i].building[j].floors[f].rooms;}
+                        }
+
                         // вводим тип комнаты и площадь
                         plot[i].building[j].floors[f].room.resize(plot[i].building[j].floors[f].rooms);
                         for (int r = 0; r < plot[i].building[j].floors[f].rooms; r++ ) {
@@ -126,6 +179,7 @@ int main() {
                                 cin >> typeRoom;
                                 while (overflow ()){cin >> typeRoom;}
                             }
+                                // присваивание типа
                             switch (typeRoom){
                                 case 1: plot[i].building[j].floors[f].room[r].roomType = bedroom;break;
                                 case 2: plot[i].building[j].floors[f].room[r].roomType = kitchen;break;
@@ -140,10 +194,30 @@ int main() {
                         }
 
                     }
+                }else if (plot[i].building[j].buildingType == bath){ // если здание - баня
+                    // проверяем печь.
+                    cout << "Does the bath have a stove with a chimney?\ny/n :";
+                    char tmp;
+                    cin >> tmp;
+                    while (tmp != 'y' && tmp != 'Y' && tmp != 'n' && tmp != 'N') {
+                        cout << "Incorrect symbol. Enter again: ";
+                        cin >> tmp;
+                    }
+                    if (tmp == 'y'|| tmp == 'Y') {plot[i].building[j].stove_with_pipe = true;}
+                    else if (tmp == 'n'|| tmp == 'N'){plot[i].building[j].stove_with_pipe = false;}
                 }
             }
 
         }
+        // расчет % площади участков к площади зданий
+        int all_plot_area = 0;
+        int all_construction_area = 0;
+        for (int i = 0; i < countPlots; i++){
+            all_plot_area += plot[i].plot_area;
+            all_construction_area += plot[i].plot_area - plot[i].unoccupied_land_area;
+        }
+        cout << (int) (((float)all_construction_area / (float)all_plot_area ) * 100.0)
+             << " %. Occupies the area of all buildings to the area of plots.";
     }
 
 }
