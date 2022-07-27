@@ -112,7 +112,7 @@ int main() {
                 // проверка площади относительно участка
                 while (plot[i].building[j].constructionArea >= plot[i].plot_area
                         || plot[i].building[j].constructionArea > plot[i].unoccupied_land_area) {
-                    cout << "Building area cannot be more or equal to plot area. Enter again: ";
+                    cout << "Building area cannot be more or equal to plot area and more unoccupied land area. Enter again: ";
                     cin >> plot[i].building[j].constructionArea;
                     while (overflow ()) {cin >> plot[i].building[j].constructionArea;}
                 }
